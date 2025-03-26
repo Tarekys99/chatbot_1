@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Mechanic Assistant</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #74ebd5, #acb6e5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 900px;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .chat-header {
+            background: linear-gradient(90deg, #ff6f61, #de4d4d);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .chat-body {
+            padding: 20px;
+            height: 500px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            border-bottom: 1px solid #ddd;
+        }
+        .message {
+            margin: 15px 0;
+            padding: 12px 20px;
+            border-radius: 10px;
+            max-width: 70%;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .user-message {
+            background: linear-gradient(135deg, #42a5f5, #1e88e5);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+        }
+        .bot-message {
+            background: linear-gradient(135deg, #e0e0e0, #bdbdbd);
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 0;
+        }
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            background: #fff;
+            border-top: 1px solid #ddd;
+        }
+        #user-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            margin-right: 10px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        #user-input:focus {
+            border-color: #ff6f61;
+        }
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(90deg, #ff6f61, #de4d4d);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: transform 0.1s, box-shadow 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* تحسين التمرير */
+        .chat-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-body::-webkit-scrollbar-thumb {
+            background: #ff6f61;
+            border-radius: 10px;
+        }
+        .chat-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Smart Mechanic Assistant</h2>
+        </div>
+        <div class="chat-body" id="chat-body">
+            <!-- Messages will appear here -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Type your question here..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatBody = document.getElementById('chat-body');
+        const userInput = document.getElementById('user-input');
+
+        // Function to add a message to the chat
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
+            messageDiv.textContent = content;
+            chatBody.appendChild(messageDiv);
+            chatBody.scrollTop = chatBody.scrollHeight; // Auto-scroll to bottom
+        }
+
+        // Function to send the message to the API
+        async function sendMessage() {
+            const prompt = userInput.value.trim();
+            if (!prompt) return;
+
+            // Add user message to the chat
+            addMessage(prompt, true);
+            userInput.value = ''; // Clear the input field
+
+            try {
+                // Send request to the API on Railway
+                const response = await fetch('https://web-production-30ee.up.railway.app/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt: prompt }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const botResponse = data.response;
+
+                // Add bot response to the chat
+                addMessage(botResponse);
+            } catch (error) {
+                addMessage('Error connecting to the server: ' + error.message);
+            }
+        }
+
+        // Allow sending message with Enter key
+        userInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
