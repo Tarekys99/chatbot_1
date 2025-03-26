@@ -8,9 +8,7 @@ app = FastAPI()
 model_name = "Qwen/Qwen2.5-1.5B-Instruct"
 
 model = AutoModelForCausalLM.from_pretrained(
-    model_name,
-    torch_dtype="auto",
-    device_map="auto"
+    model_name
 )
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
@@ -31,7 +29,7 @@ def generate_text(data: RequestData):
         add_generation_prompt=True
     )
 
-    model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
+    model_inputs = tokenizer([text], return_tensors="pt")
 
     generated_ids = model.generate(
         **model_inputs,
